@@ -1,0 +1,36 @@
+#!/usr/bin/env sh
+echo -e "--- upgrade"
+
+# TODO: receive arguments
+
+update_fisher() {
+  FISHER_INSTALLED_VERSION=$(fish -c 'fisher -v' | cut -d' ' -f3)
+  FISHER_REMOTE_VERSION=$(curl -s https://api.github.com/repos/jorgebucaran/fisher/releases/latest | grep -oP '"tag_name": "\K(.*)(?=")' | cut -c1-)
+
+  if [ $(version $FISHER_INSTALLED_VERSION) -lt $(version $FISHER_REMOTE_VERSION) ]; then
+    echo -e "Updating fisher to ${FISHER_REMOTE_VERSION}"
+    setup_config
+    fish -c fisher update
+  else
+    echo "Installed version (${FISHER_INSTALLED_VERSION}) is up to date (remote is ${FISHER_REMOTE_VERSION})"
+  fi
+}
+
+update_nix() {
+  nix-channel --update
+  nix-env -u
+}
+
+execute() {
+  if [[ $(command -v eopkg) ]]; then # Solus
+    sudo eopkg upgrade
+  elif [[ $(command -v swupd) ]]; then # ClearLinux
+    sudo swupd update
+  fi
+  # Serpent OS
+
+  update_fisher
+  update_nix
+}
+
+execute
