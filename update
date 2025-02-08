@@ -1,7 +1,15 @@
 #!/usr/bin/env sh
-echo -e "--- upgrade"
+echo -e "--- System update"
 
-# TODO: receive arguments
+update_dotfiles() {
+  list=("$@")
+
+  for repo_name in "${list[@]}"; do
+    cd $XDG_CONFIG_HOME/${repo_name}
+    echo -e "\t$PWD\n\tChecking if ${repo_name} is up-to-date, otherwise pulling updates."
+    git pull
+  done
+}
 
 update_fisher() {
   FISHER_INSTALLED_VERSION=$(fish -c 'fisher -v' | cut -d' ' -f3)
@@ -14,6 +22,10 @@ update_fisher() {
   else
     echo "Installed version (${FISHER_INSTALLED_VERSION}) is up to date (remote is ${FISHER_REMOTE_VERSION})"
   fi
+}
+
+update_flatpak() {
+  flatpak update
 }
 
 update_nix() {
@@ -29,8 +41,12 @@ execute() {
   fi
   # Serpent OS
 
+  # TODO: user choice
+  update_dotfiles
   update_fisher
+  update_flatpak
   update_nix
 }
 
 execute
+
