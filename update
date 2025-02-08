@@ -24,6 +24,10 @@ update_fisher() {
   fi
 }
 
+update_fonts() {
+  echo -e "\n--- to be implemented\n"
+}
+
 update_flatpak() {
   flatpak update
 }
@@ -45,6 +49,7 @@ execute() {
   update_dotfiles
   update_fisher
   update_flatpak
+  update_fonts
   update_nix
 }
 
