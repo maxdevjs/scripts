@@ -1,6 +1,15 @@
 #!/usr/bin/env sh
 echo -e "--- System update"
 
+update_distro() {
+  if [[ $(command -v eopkg) ]]; then # Solus
+    sudo eopkg upgrade
+  elif [[ $(command -v swupd) ]]; then # ClearLinux
+    sudo swupd update
+  fi
+  # Serpent OS
+}
+
 update_dotfiles() {
   list=("$@")
 
@@ -25,7 +34,7 @@ update_fisher() {
 }
 
 update_fonts() {
-  echo -e "\n--- to be implemented\n"
+  echo -e "\n--- to be implemented yet\n"
 }
 
 update_flatpak() {
@@ -37,20 +46,36 @@ update_nix() {
   nix-env -u
 }
 
-execute() {
-  if [[ $(command -v eopkg) ]]; then # Solus
-    sudo eopkg upgrade
-  elif [[ $(command -v swupd) ]]; then # ClearLinux
-    sudo swupd update
+setup_vimix_themes() {
+  REMOTE_VERSION=`curl -s https://api.github.com/repos/vinceliuice/${1}/releases/latest | grep -oP '"tag_name": "\K(.*)(?=")' | cut -c2-`
+  INSTALLED_VERSION=$(cat $HOME/.themes/${1})
+  if [ $(version $INSTALLED_VERSION) -lt $(version $REMOTE_VERSION) ]; then
+    echo -e "Updating ${1} (current version ${INSTALLED_VERSION}) to ${REMOTE_VERSION}"
+    cd /tmp/
+    rm -Rf /tmp/${1}.zip 2>/dev/null
+    rm -Rf /tmp/${1}-master/ 2>/dev/null
+    wget https://github.com/vinceliuice/${1}/archive/master.zip -O ${1}.zip
+    unzip ${1}.zip
+    cd ${1}-master
+    ./install.sh
+    echo "${REMOTE_VERSION}" > $HOME/.themes/.${1}
   fi
-  # Serpent OS
+}
 
+update_themes() {
+  setup_vimix_themes vimix-gtk-themes
+  setup_vimix_themes vimix_icon_theme
+}
+
+execute() {
   # TODO: user choice
+  update_distro
   update_dotfiles
   update_fisher
   update_flatpak
   update_fonts
   update_nix
+  update_themes
 }
 
 execute
