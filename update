@@ -81,7 +81,7 @@ update_themes() {
 }
 
 execute() {
-  # TODO: user choice
+  # TODO: receive user choice
   update_distro
   update_dotfiles
   update_fisher
