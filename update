@@ -1,9 +1,16 @@
 #!/usr/bin/env sh
-echo -e "--- System update"
+
+log() {
+  #echo -e "--- System update"
+  echo -e "--- $1"
+}
+
+log "System update"
 
 version() { echo "$@" | awk -F. '{ printf("%d%03d%03d%03d\n", $1,$2,$3,$4); }'; }
 
 update_distro() {
+  log "Distro update"
   if [[ $(command -v eopkg) ]]; then # Solus
     sudo eopkg upgrade
   elif [[ $(command -v swupd) ]]; then # ClearLinux
@@ -13,6 +20,7 @@ update_distro() {
 }
 
 update_dotfiles() {
+  log "Dotfiles update"
   list=("$@")
 
   for repo_name in "${list[@]}"; do
@@ -23,6 +31,7 @@ update_dotfiles() {
 }
 
 update_fisher() {
+  log "Fisher update"
   FISHER_INSTALLED_VERSION=$(fish -c 'fisher -v' | cut -d' ' -f3)
   FISHER_REMOTE_VERSION=$(curl -s https://api.github.com/repos/jorgebucaran/fisher/releases/latest | grep -oP '"tag_name": "\K(.*)(?=")' | cut -c1-)
 
@@ -36,14 +45,18 @@ update_fisher() {
 }
 
 update_fonts() {
+  log "Fonts update"
   echo -e "\n--- to be implemented yet\n"
 }
 
 update_flatpak() {
+  log "Flatpak update"
   flatpak update
 }
 
 update_kitty() {
+  log "Kitty update"
+  
   INSTALLED_VERSION=$(kitty -v 2>&1 | cut -d ' ' -f2)
   REMOTE_VERSION=`curl -s https://api.github.com/repos/kovidgoyal/kitty/releases/latest | grep -oP '"tag_name": "\K(.*)(?=")' | cut -c2-`
   if [ $(version $INSTALLED_VERSION) -lt $(version $REMOTE_VERSION) ]; then
@@ -55,11 +68,15 @@ update_kitty() {
 }
 
 update_nix() {
+  log "Nix update"
+  
   nix-channel --update
   nix-env -u
 }
 
 setup_vimix_themes() {
+  log "Themes update"
+  
   REMOTE_VERSION=`curl -s https://api.github.com/repos/vinceliuice/${1}/releases/latest | grep -oP '"tag_name": "\K(.*)(?=")' | cut -c2-`
   INSTALLED_VERSION=$(cat $HOME/.themes/${1})
   if [ $(version $INSTALLED_VERSION) -lt $(version $REMOTE_VERSION) ]; then
@@ -68,20 +85,20 @@ setup_vimix_themes() {
     rm -Rf /tmp/${1}.zip 2>/dev/null
     rm -Rf /tmp/${1}-master/ 2>/dev/null
     wget https://github.com/vinceliuice/${1}/archive/master.zip -O ${1}.zip
-    unzip ${1}.zip
-    cd ${1}-master
+    unzip /tmp/${1}.zip
+    cd /tmp/${1}-master
     ./install.sh
     echo "${REMOTE_VERSION}" > $HOME/.themes/.${1}
   fi
 }
 
 update_themes() {
-  setup_vimix_themes vimix-gtk-themes
-  setup_vimix_themes vimix-icon-theme
+  setup_vimix_themes Vimix-gtk-themes
+  setup_vimix_themes Vimix-icon-theme
 }
 
 execute() {
-  # TODO: receive user choice
+  # TODO: user choice
   update_distro
   update_dotfiles
   update_fisher
@@ -89,7 +106,7 @@ execute() {
   update_fonts
   update_nix
   update_kitty
-  update_themes
+  #update_themes
 }
 
 execute
