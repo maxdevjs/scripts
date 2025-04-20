@@ -2,7 +2,7 @@
 
 log() {
   #echo -e "--- System update"
-  echo -e "--- $1"
+  echo -e "\n\t--- $1\n"
 }
 
 log "System update"
@@ -37,11 +37,11 @@ update_fisher() {
 
   if [ $(version $FISHER_INSTALLED_VERSION) -lt $(version $FISHER_REMOTE_VERSION) ]; then
     echo -e "Updating fisher to ${FISHER_REMOTE_VERSION}"
-    setup_config
-    fish -c fisher update
+    #setup_config
   else
     echo "Installed version (${FISHER_INSTALLED_VERSION}) is up to date (remote is ${FISHER_REMOTE_VERSION})"
   fi
+  fish -c fisher update
 }
 
 update_fonts() {
@@ -68,10 +68,12 @@ update_kitty() {
 }
 
 update_nix() {
-  log "Nix update"
+  log "Nix update. This can take a while ☕🛋️💤"
   
   nix-channel --update
   nix-env -u
+  
+  log "Nix packages updated! 🥳🎉"
 }
 
 setup_vimix_themes() {
