@@ -1,0 +1,7 @@
+#!/usr/bin/env sh
+
+# Nautilus actions: Command -> Working Directory -> %f 
+
+MEMORY_CONTENT=`xclip -selection clipboard -o`
+# echo $M
+notify-send "$MEMORY_CONTENT"
