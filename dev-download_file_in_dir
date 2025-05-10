@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+
+# Nautilus actions: Command -> Working Directory -> %f 
+
+FILE=`xclip -selection clipboard -o`
+
+# http://stackoverflow.com/questions/3183444/check-for-valid-link-url
+REGEX='(https?|ftp|file)://[-A-Za-z0-9\+&@#/%?=~_|!:,.;]*[-A-Za-z0-9\+&@#/%=~_|]'
+
+MSG_SUCCESS="downloading $FILE"
+MSG_FAIL="Not a valid Link"
+
+# if echo "$FILE" | grep -q "$REGEX"
+if [[ $FILE =~ $REGEX ]]
+then 
+  echo $MSG_SUCCESS
+  notify-send $MSG_SUCCESS
+  wget $FILE
+else
+  echo $MSG_FAIL
+  notify-send "$MSG_FAIL" 
+fi
+
