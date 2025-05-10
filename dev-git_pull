@@ -1,0 +1,5 @@
+#!/usr/bin/env sh
+
+GP=$(git pull)
+
+notify-send -t 10000 -i "git" "Git pull" "$GP"
