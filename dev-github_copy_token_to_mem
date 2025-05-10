@@ -1,0 +1,3 @@
+#!/usr/bin/env sh
+
+xsel --clipboard <$HOME/Me/tokens/github-token
