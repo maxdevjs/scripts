@@ -1,0 +1,11 @@
+#!/usr/bin/env sh
+
+#mix from https://gist.github.com/igrigorik/6666860
+if [ $(uname -s) = Darwin ]; then
+  browser=open
+else
+  browser=xdg-open
+fi
+
+#https://gist.github.com/igrigorik/6666860#gistcomment-913157
+git remote -v | awk '/origin.*push/ {print$2}' | xargs $browser &> /dev/null
