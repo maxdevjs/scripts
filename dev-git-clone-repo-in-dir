@@ -1,0 +1,55 @@
+#!/usr/bin/env bash
+
+# Nautilus actions: Command -> Working Directory -> %f 
+
+REPO=`xclip -selection clipboard -o`
+# echo cloning $REPO
+# git clone $REPO
+
+# https://github.com/horst3180/arc-theme --depth 1 && cd arc-theme
+REGEXCD='&& cd'
+
+# http://stackoverflow.com/questions/12058705/a-better-way-to-do-git-clone
+# http://unix.stackexchange.com/questions/97920/how-to-cd-automatically-after-git-clone
+if [[ ($REPO =~ $REGEXCD) ]]
+then
+  notify-send -t 10000 -i "git" "also a cd mmmh"
+fi
+
+# http://stackoverflow.com/questions/2514859/regular-expression-for-git-repository
+# https://www.debuggex.com/r/H4kRw1G0YPyBFjfm
+
+# TODO not working for
+# git@bitbucket.org:teamsinspace/documentation-tests.git
+# git@gist.github.com:f781065d085d2fd9acc29b2ee4767180.git
+
+# Works for:
+# https://bitbucket.org/teamsinspace/documentation-tests.git
+# https://github.com/driftyco/ionic-native
+# https://gist.github.com/5834862.git
+# https://gist.github.com/max-devjs/f781065d085d2fd9acc29b2ee4767180
+
+# https://github.com/horst3180/arc-theme --depth 1
+
+# REGEX='((git|ssh|http(s)?)|(git@[\w\.]+))(:(//)?)([\w\.@\:/\-~]+)(\.git)(/)?'
+# REGEX='((git|ssh|http(s)?)|(git@[\w\.]+))[://][-A-Za-z0-9\+&@#/%?=~_|!:,.;]*[-A-Za-z0-9\+&@#/%=~_:|]*[(\.git)](\/)?'
+# REGEX='((git|ssh|http(s)?)|(git@[\w\.]+))[:\/\/][-A-Za-z0-9\+&@#/%?=~_|!:,.;]*[-A-Za-z0-9\+&@#/%=~_:|]*[(\.git)](\/)?'
+REGEX='((git|ssh|http(s)?)|(git@[\w\.]+))[:][\/\/][-A-Za-z0-9\+&@#\/%?=~_|!:,.;]*[(\.git)][(\/)]?'
+REGEX1='file://(.*)'
+REGEX2='(.+@)*([\w\d\.]+):(.*)'
+
+MSG_SUCCESS="cloning $REPO"
+MSG_FAIL="Link is not a valid git repo: {$REPO}"
+
+# sh
+# http://stackoverflow.com/questions/8599628/shell-scripting-and-regular-expression
+# if echo "$REPO" | grep -qs '$REGEX'
+if [[ ($REPO =~ $REGEX) || ($REPO =~ $REGEX1) ]]
+then 
+  echo $MSG_SUCCESS
+  notify-send -t 10000 -i "git" "$MSG_SUCCESS"
+  git clone $REPO
+else
+  echo $MSG_FAIL
+  notify-send -t 10000 -i "git" "$MSG_FAIL" 
+fi
