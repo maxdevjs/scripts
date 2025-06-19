@@ -1,18 +1,23 @@
 #!/usr/bin/env sh
 
-log() {
-  #echo -e "--- System update"
-  echo -e "\n\t--- $1\n"
-}
+. x-utils
 
 log "System update"
-
-version() { echo "$@" | awk -F. '{ printf("%d%03d%03d%03d\n", $1,$2,$3,$4); }'; }
 
 update_distro() {
   log "Distro update"
   if [[ $(command -v eopkg) ]]; then # Solus
-    sudo eopkg upgrade
+    #https://linuxiac.com/solus-linux-eopkg-package-manager-guide/
+    output=$(sudo eopkg upgrade -n)
+    string="No packages to upgrade"
+    # if [[ "$output" =~ "No packages to upgrade" ]]
+    if [[ $(sudo eopkg upgrade -n) =~ "No packages to upgrade" ]]
+    then
+      log "No distro updates available."
+    else
+      sudo eopkg upgrade
+      sudo eopkg delete-cache
+    fi
   elif [[ $(command -v swupd) ]]; then # ClearLinux
     sudo swupd update
   fi
@@ -37,11 +42,11 @@ update_fisher() {
 
   if [ $(version $FISHER_INSTALLED_VERSION) -lt $(version $FISHER_REMOTE_VERSION) ]; then
     echo -e "Updating fisher to ${FISHER_REMOTE_VERSION}"
-    #setup_config
   else
     echo "Installed version (${FISHER_INSTALLED_VERSION}) is up to date (remote is ${FISHER_REMOTE_VERSION})"
   fi
-  fish -c fisher update
+  #TODO: fix this
+  fish -c "fisher update"
 }
 
 update_fonts() {
@@ -69,11 +74,26 @@ update_kitty() {
 
 update_nix() {
   log "Nix update. This can take a while ☕🛋️💤"
-  
+
+  #TODO: temp fix
   nix-channel --update
-  nix-env -u
-  
+  nix-env -u &>/dev/null
   log "Nix packages updated! 🥳🎉"
+
+  #FIX: no useful output?
+  # if [[ $(nix-channel --update 2>&1) =~ "switching from generation" ]]
+  # then
+    #https://nix.dev/manual/nix/2.22/command-ref/nix-channel
+    # nix-channel --update
+
+    #https://nix.dev/manual/nix/2.22/command-ref/nix-env/upgrade
+    # nix-env -u &>/dev/null
+    #nix-channel --list-generations
+    
+    # log "Nix packages updated! 🥳🎉"
+  # else
+    # log "No Nix updates available."
+  # fi
 }
 
 setup_vimix_themes() {
