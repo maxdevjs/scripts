@@ -1,9 +1,19 @@
 #!/usr/bin/env sh
 
+COLOR_OFF='\033[0m'
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[0;33m'
+BOLD_PURPLE='\033[1;35m'
+CHECK_MARK="${GREEN}\u2714${COLOR_OFF}"
+CROSS_MARK="${RED}\u2718${COLOR_OFF}"
+WARNING_SIGN="${YELLOW}\u26A0${COLOR_OFF}"
+# see https://stackoverflow.com/a/28938235/13164753
+
 log() {
+  # echo -e "${CHECK_MARK} ${CROSS_MARK} ${WARNING_SIGN}"
   #echo -e "--- System update"
-  echo -e "\n\t--- $1\n"
+  echo -e "\n\t--- $1$2 $3$4\n"
 }
 
 version() { echo "$@" | awk -F. '{ printf("%d%03d%03d%03d\n", $1,$2,$3,$4); }'; }
-

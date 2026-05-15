@@ -2,10 +2,12 @@
 
 . x-utils
 
-log "System update"
+# https://github.com/FilenCloudDienste/filen-rs/blob/main/filen-cli/install.sh
+
+log ${WARNING_SIGN} ${BOLD_PURPLE} "System updates" ${COLOR_OFF}
 
 update_distro() {
-  log "Distro update"
+  log ${WARNING_SIGN} ${BOLD_PURPLE} "Distro updates" ${COLOR_OFF}
   if [[ $(command -v eopkg) ]]; then # Solus
     #https://linuxiac.com/solus-linux-eopkg-package-manager-guide/
     output=$(sudo eopkg upgrade -n)
@@ -13,19 +15,21 @@ update_distro() {
     # if [[ "$output" =~ "No packages to upgrade" ]]
     if [[ $(sudo eopkg upgrade -n) =~ "No packages to upgrade" ]]
     then
-      log "No distro updates available."
+      log ${CROSS_MARK} ${YELLOW} "No distro updates available" ${COLOR_OFF}
     else
       sudo eopkg upgrade
       sudo eopkg delete-cache
+      log ${CHECK_MARK} ${GREEN} "Distro updated! 🥳🎉" ${COLOR_OFF}
     fi
   elif [[ $(command -v swupd) ]]; then # ClearLinux
     sudo swupd update
   fi
   # Serpent OS
+
 }
 
 update_dotfiles() {
-  log "Dotfiles update"
+  log ${WARNING_SIGN} ${BOLD_PURPLE} "Dotfiles update" ${COLOR_OFF}
   list=("$@")
 
   for repo_name in "${list[@]}"; do
@@ -33,52 +37,75 @@ update_dotfiles() {
     echo -e "\t$PWD\n\tChecking if ${repo_name} is up-to-date, otherwise pulling updates."
     git pull
   done
+  log ${CHECK_MARK} ${GREEN} "Dotfiles updated! 🥳🎉" ${COLOR_OFF}
 }
 
 update_fisher() {
-  log "Fisher update"
+  log ${WARNING_SIGN} ${BOLD_PURPLE} "Fisher update" ${COLOR_OFF}
+
   FISHER_INSTALLED_VERSION=$(fish -c 'fisher -v' | cut -d' ' -f3)
   FISHER_REMOTE_VERSION=$(curl -s https://api.github.com/repos/jorgebucaran/fisher/releases/latest | grep -oP '"tag_name": "\K(.*)(?=")' | cut -c1-)
-
+  
+  if [[ ${FISHER_REMOTE_VERSION} == "" ]] ; then
+    log ${CROSS_MARK} ${RED} "Check Fisher latest URL" ${COLOR_OFF}
+    exit 1
+  fi
+  
   if [ $(version $FISHER_INSTALLED_VERSION) -lt $(version $FISHER_REMOTE_VERSION) ]; then
-    echo -e "Updating fisher to ${FISHER_REMOTE_VERSION}"
+    # echo -e "Updating fisher to ${FISHER_REMOTE_VERSION}"
+    log ${WARNING_SIGN} ${YELLOW} "Updating fisher to ${FISHER_REMOTE_VERSION}" ${COLOR_OFF}
   else
-    echo "Installed version (${FISHER_INSTALLED_VERSION}) is up to date (remote is ${FISHER_REMOTE_VERSION})"
+    # echo "Installed version (${FISHER_INSTALLED_VERSION}) is up to date (remote is ${FISHER_REMOTE_VERSION})"
+    log ${CHECK_MARK} ${GREEN} "Installed version (${FISHER_INSTALLED_VERSION}) is up to date (remote is ${FISHER_REMOTE_VERSION})" ${COLOR_OFF}
   fi
   #TODO: fix this
   fish -c "fisher update"
+  log ${CHECK_MARK} ${GREEN} "Fisher updated!" ${COLOR_OFF}
 }
 
 update_fonts() {
-  log "Fonts update"
+  log ${WARNING_SIGN} ${BOLD_PURPLE} "Fonts update" ${COLOR_OFF}
   echo -e "\n--- to be implemented yet\n"
+  log ${CHECK_MARK} ${GREEN} "Fonts updated!" ${COLOR_OFF}
 }
 
 update_flatpak() {
-  log "Flatpak update"
+  log ${WARNING_SIGN} ${BOLD_PURPLE} "Flatpak update" ${COLOR_OFF}
   flatpak update
+  log ${CHECK_MARK} ${GREEN} "Flatpak updated!" ${COLOR_OFF}
 }
 
 update_kitty() {
   log "Kitty update"
+  log ${WARNING_SIGN} ${BOLD_PURPLE} "Kitty update" ${COLOR_OFF}
   
   INSTALLED_VERSION=$(kitty -v 2>&1 | cut -d ' ' -f2)
   REMOTE_VERSION=`curl -s https://api.github.com/repos/kovidgoyal/kitty/releases/latest | grep -oP '"tag_name": "\K(.*)(?=")' | cut -c2-`
+
+  if [[ ${REMOTE_VERSION} == "" ]] ; then
+    log ${CROSS_MARK} ${RED} "Check Kitty latest URL" ${COLOR_OFF}
+    exit 1
+  fi
   if [ $(version $INSTALLED_VERSION) -lt $(version $REMOTE_VERSION) ]; then
-    echo -e "Updating Kitty to ${REMOTE_VERSION}"
+    # echo -e "Updating Kitty to ${REMOTE_VERSION}"
+
+    log ${WARNING_SIGN} ${YELLOW} "Updating Kitty to ${REMOTE_VERSION})" ${COLOR_OFF}
+    
     curl -L https://sw.kovidgoyal.net/kitty/installer.sh | sh /dev/stdin
+    log ${CHECK_MARK} ${GREEN} "Updated Kitty to version ${REMOTE_VERSION})" ${COLOR_OFF}
   else
-    echo "Installed version (${INSTALLED_VERSION}) is up to date (remote is ${REMOTE_VERSION})"
+    log ${CHECK_MARK} ${GREEN} "Installed version (${INSTALLED_VERSION}) is up to date (remote is ${REMOTE_VERSION})" ${COLOR_OFF}
   fi
 }
 
 update_nix() {
-  log "Nix update. This can take a while ☕🛋️💤"
+  # log "Nix update. This can take a while ☕🛋️💤"
+  log ${WARNING_SIGN} ${BOLD_PURPLE} "Nix update. This can take a looong while ☕🛋️💤" ${COLOR_OFF}
 
   #TODO: temp fix
   nix-channel --update
   nix-env -u &>/dev/null
-  log "Nix packages updated! 🥳🎉"
+  log ${CHECK_MARK} ${GREEN} "Nix packages updated! 🥳🎉" ${COLOR_OFF}
 
   #FIX: no useful output?
   # if [[ $(nix-channel --update 2>&1) =~ "switching from generation" ]]
@@ -110,7 +137,7 @@ setup_vimix_themes() {
     unzip /tmp/${1}.zip
     cd /tmp/${1}-master
     ./install.sh
-    echo "${REMOTE_VERSION}" > $HOME/.themes/.${1}
+    echo "${REMOTE_VERSION}" > $HOME/.REMOTE_VERSIONthemes/.${1}
   fi
 }
 
@@ -122,12 +149,12 @@ update_themes() {
 execute() {
   # TODO: user choice
   update_distro
+  update_nix
   update_dotfiles
+  update_kitty
   update_fisher
   update_flatpak
-  update_fonts
-  update_nix
-  update_kitty
+  #update_fonts
   #update_themes
 }
 
