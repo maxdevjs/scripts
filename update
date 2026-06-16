@@ -4,8 +4,6 @@
 
 # https://github.com/FilenCloudDienste/filen-rs/blob/main/filen-cli/install.sh
 
-log ${WARNING_SIGN} ${BOLD_PURPLE} "System updates" ${COLOR_OFF}
-
 update_distro() {
   log ${WARNING_SIGN} ${BOLD_PURPLE} "Distro updates" ${COLOR_OFF}
   if [[ $(command -v eopkg) ]]; then # Solus
@@ -76,21 +74,17 @@ update_flatpak() {
 }
 
 update_kitty() {
-  log "Kitty update"
   log ${WARNING_SIGN} ${BOLD_PURPLE} "Kitty update" ${COLOR_OFF}
   
-  INSTALLED_VERSION=$(kitty -v 2>&1 | cut -d ' ' -f2)
   REMOTE_VERSION=`curl -s https://api.github.com/repos/kovidgoyal/kitty/releases/latest | grep -oP '"tag_name": "\K(.*)(?=")' | cut -c2-`
+  INSTALLED_VERSION=$(kitty -v 2>&1 | cut -d ' ' -f2)
 
   if [[ ${REMOTE_VERSION} == "" ]] ; then
     log ${CROSS_MARK} ${RED} "Check Kitty latest URL" ${COLOR_OFF}
     exit 1
   fi
   if [ $(version $INSTALLED_VERSION) -lt $(version $REMOTE_VERSION) ]; then
-    # echo -e "Updating Kitty to ${REMOTE_VERSION}"
-
     log ${WARNING_SIGN} ${YELLOW} "Updating Kitty to ${REMOTE_VERSION})" ${COLOR_OFF}
-    
     curl -L https://sw.kovidgoyal.net/kitty/installer.sh | sh /dev/stdin
     log ${CHECK_MARK} ${GREEN} "Updated Kitty to version ${REMOTE_VERSION})" ${COLOR_OFF}
   else
@@ -124,38 +118,60 @@ update_nix() {
 }
 
 setup_vimix_themes() {
-  log "Themes update"
-  
-  REMOTE_VERSION=`curl -s https://api.github.com/repos/vinceliuice/${1}/releases/latest | grep -oP '"tag_name": "\K(.*)(?=")' | cut -c2-`
-  INSTALLED_VERSION=$(cat $HOME/.themes/${1})
+  REMOTE_VERSION=`curl -s https://api.github.com/repos/vinceliuice/${1}/releases/latest | grep -oP '"tag_name": "\K(.*)(?=")' | cut -c1-`
+  FILE_INSTALLED_VERSION=$HOME/.themes/.${1}
+  if [[ -f  $FILE_INSTALLED_VERSION ]];then
+
+  INSTALLED_VERSION=$(cat $FILE_INSTALLED_VERSION)
+  else
+    INSTALLED_VERSION=0
+  fi
+
   if [ $(version $INSTALLED_VERSION) -lt $(version $REMOTE_VERSION) ]; then
-    echo -e "Updating ${1} (current version ${INSTALLED_VERSION}) to ${REMOTE_VERSION}"
+    REPO=https://github.com/vinceliuice/${1}
+    log ${WARNING_SIGN} ${YELLOW} "Updating ${1} (current version ${INSTALLED_VERSION}) to ${REMOTE_VERSION})" ${COLOR_OFF}
     cd /tmp/
-    rm -Rf /tmp/${1}.zip 2>/dev/null
-    rm -Rf /tmp/${1}-master/ 2>/dev/null
-    wget https://github.com/vinceliuice/${1}/archive/master.zip -O ${1}.zip
-    unzip /tmp/${1}.zip
-    cd /tmp/${1}-master
-    ./install.sh
-    echo "${REMOTE_VERSION}" > $HOME/.REMOTE_VERSIONthemes/.${1}
+    if [[ -d $1 ]];then
+      log "/tmp/$1 already exists! Deleting folder and cloning the ${REPO}"
+      rm -Rf /tmp/$1
+    fi
+
+    git clone ${REPO}
+    cd /tmp/${1}
+
+    if [[ $1 =~ Vimix-gtk-themes ]]; then
+      echo Vimix-gtk-themes
+      ./install.sh -t all -s all
+    fi
+    if [[ $1 =~ Vimix-icon-theme ]]; then
+      echo Vimix-icon-theme
+      ./install.sh -a
+      echo "${REMOTE_VERSION}" > $HOME/.themes/.${1}
+    log ${CHECK_MARK} ${GREEN} "${1} themes update!" ${COLOR_OFF}
+    fi
+  else
+    log ${CHECK_MARK} ${GREEN} "${1} themes already up-to-date!" ${COLOR_OFF}
   fi
 }
 
 update_themes() {
+  log ${WARNING_SIGN} ${BOLD_PURPLE} "Themes update" ${COLOR_OFF}
   setup_vimix_themes Vimix-gtk-themes
   setup_vimix_themes Vimix-icon-theme
+  log ${CHECK_MARK} ${GREEN} "Themes updated!" ${COLOR_OFF}
 }
 
 execute() {
   # TODO: user choice
+  log ${WARNING_SIGN} ${BOLD_PURPLE} "System updates" ${COLOR_OFF}
   update_distro
   update_nix
   update_dotfiles
   update_kitty
   update_fisher
   update_flatpak
-  #update_fonts
-  #update_themes
+  update_fonts
+  update_themes
 }
 
 execute
