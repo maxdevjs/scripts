@@ -1,0 +1,16 @@
+#!/usr/bin/env sh
+
+#dconf dump / > gnome-desktop-backup.txt
+# Reset (or Tweaks > ⚙️ > Reset to Defaults)
+# dconf reset -f /org/gnome/
+# dconf load /org/gnome/ < gnome-desktop-backup.txt
+#
+# Disable extensions
+# gsettings set org.gnome.shell disable-extension-version-validation true
+#
+#flatpak remote-add --if-not-exists flathub https://flathub.org
+#flatpak install flathub com.mattjakeman.ExtensionManager
+#
+# systemctl --user restart gnome-shell
+# Failed to restart gnome-shell.service: Unit gnome-shell.service not found.
+# gnome-session-quit --logout --no-prompt
