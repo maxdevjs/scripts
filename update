@@ -165,11 +165,11 @@ execute() {
   # TODO: user choice
   log ${WARNING_SIGN} ${BOLD_PURPLE} "System updates" ${COLOR_OFF}
   update_distro
+  update_flatpak
   update_nix
   update_dotfiles
   update_kitty
   update_fisher
-  update_flatpak
   update_fonts
   update_themes
 }
