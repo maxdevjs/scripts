@@ -69,7 +69,7 @@ update_fonts() {
 
 update_flatpak() {
   log ${WARNING_SIGN} ${BOLD_PURPLE} "Flatpak update" ${COLOR_OFF}
-  flatpak update
+  flatpak update -y
   log ${CHECK_MARK} ${GREEN} "Flatpak updated!" ${COLOR_OFF}
 }
 
