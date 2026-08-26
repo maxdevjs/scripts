@@ -1,0 +1,44 @@
+#!/usr/bin/env sh
+
+# Disable the monolithic components
+sudo systemctl disable --now libvirtd.service libvirtd.socket
+sudo systemctl mask libvirtd.service
+
+# https://libvirtd.com/man/modern-libvirt/
+eopkg history | grep libvirt
+
+# Enable and start the modular QEMU and Network sockets
+sudo systemctl enable --now virtqemud.socket virtnetworkd.socket virtstoraged.socket virtsecret_d.socket
+# Enable the proxy daemon that links old app configs to new sockets
+sudo systemctl enable --now virtproxyd.socket
+# Start the primary driver service
+sudo systemctl start virtqemud.service
+# Verifying it Works
+sudo systemctl status virtqemud libvirtd
+ls -l /var/run/libvirt/virtnetworkd-sock
+
+systemctl list-unit-files 'virt*d*'
+
+# TODO investigate: this breaks virtqemu
+# sudo systemctl disable libvirtd.service && sudo systemctl enable --now libvirtd.service
+# To fix your libvirtd startup failure on your Solus Linux system (t480-solus), you need to address a newly introduced security feature in systemd and libvirt.
+# Modern versions of libvirt utilize systemd to pass an encrypted storage credential file—which is sealed against your machine's TPM (Trusted Platform Module)—to the daemon right as it spawns. If you recently updated your system, modified your BIOS/UEFI settings, cleared your TPM, or altered your kernel command line, the TPM state changed. Because the TPM state no longer matches the stored key policy, systemd aborts spawning the daemon entirely (Failed at step CREDENTIALS).
+# Because libvirtd can't start, the communication sockets (like virtnetworkd-sock or libvirt-sock) are never created in /var/run/libvirt/
+#
+#
+# Yes, Solus has adopted libvirt's modern modular architecture, which replaces the traditional monolithic libvirtd daemon with specialized daemons for improved security and resource management. This modular approach allows for better isolation and management of virtualization components.
+# Adoption of Libvirt's Modular Architecture in Solus
+# Solus has successfully adopted libvirt's modern modular architecture. This transition replaces the traditional monolithic libvirtd daemon with specialized daemons, enhancing security and resource management.
+#
+# Benefits of the Modular Architecture
+# Improved Security: Each daemon operates independently, reducing the risk of a single point of failure and enhancing overall system security.
+# Resource Management: The modular approach allows for running only the necessary components, optimizing resource usage.
+# Key Daemons in the Modular Architecture
+# Daemon Name	Functionality
+# virtqemud	Manages QEMU/KVM virtual machines
+# virtnetworkd	Handles virtual network management
+# virtstoraged	Manages storage pools and volumes
+# virtnodedevd	Manages node devices (e.g., PCI, USB)
+# virtproxyd	Provides remote access and compatibility with legacy clients
+# Conclusion
+# The shift to a modular architecture in Solus not only enhances security and resource management but also aligns with modern virtualization practices, ensuring a more robust and efficient environment for users.
